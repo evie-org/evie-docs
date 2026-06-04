@@ -1,0 +1,7 @@
+# Docusaurus
+docsite/node_modules
+docsite/build
+docsite/.docusaurus
+
+# Python
+.venv

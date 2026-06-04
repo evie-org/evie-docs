@@ -1,0 +1,55 @@
+# Copyright Kaneer
+
+project:
+  id: kaneer
+  name: Kaneer
+  description: Documentation for Kaneer
+
+structure:
+  template_dir: templates
+  # Empty docs_roots disables the root-level *.md glob so files like CONTRIBUTING.md
+  # are not scanned. The doc_types scanner falls back to "." so the folders below
+  # still resolve.
+  docs_roots: []
+  doc_types:
+    adrs:
+      schema: adr
+      folders: [adrs]
+      filename_pattern: "^adr-(\\d{3})-(.+)\\.md$"
+      enforce_filename_pattern: true
+      require_frontmatter: true
+    rfcs:
+      schema: rfc
+      folders: [rfcs]
+      filename_pattern: "^rfc-(\\d{3})-(.+)\\.md$"
+      enforce_filename_pattern: true
+      require_frontmatter: true
+    memos:
+      schema: memo
+      folders: [memos]
+      filename_pattern: "^memo-(\\d{3})-(.+)\\.md$"
+      enforce_filename_pattern: true
+      require_frontmatter: true
+    prds:
+      schema: prd
+      folders: [prds]
+      filename_pattern: "^prd-(\\d{3})-(.+)\\.md$"
+      enforce_filename_pattern: true
+      require_frontmatter: true
+
+metadata:
+  created: "2026-06-05"
+  maintainers:
+    - kaneer-team
+  purpose: Project documentation hub for architecture decisions, RFCs, memos, and PRDs
+
+readability:
+  enabled: true
+  flesch_reading_ease_min: 60.0
+  flesch_kincaid_grade_max: 10.0
+  gunning_fog_max: 12.0
+  smog_index_max: 12.0
+  automated_readability_index_max: 10.0
+  coleman_liau_index_max: 10.0
+  dale_chall_max: 9.0
+  min_paragraph_length: 100
