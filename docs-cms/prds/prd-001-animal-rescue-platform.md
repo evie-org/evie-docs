@@ -9,17 +9,16 @@ id: prd-001
 project_id: kaneer
 doc_uuid: 5a3ff091-d731-40eb-8eb9-05e5f4989b01
 ---
-
 <!-- markdown-link-check-disable -->
 # Animal Rescue Platform
 
 | Field | Value |
-|-------|-------|
-| **Author** | _[Fill in]_ |
+| --- | --- |
+| **Author** | *[Fill in]* |
 | **Status** | Draft |
 | **Version** | 0.1 |
 | **Last updated** | 2026-06-04 |
-| **Reviewers / Stakeholders** | _[Fill in]_ |
+| **Reviewers / Stakeholders** | *[Fill in]* |
 
 > [!NOTE]
 > Sections with locked decisions are marked ✅. Open items are marked `[TODO]` or
@@ -39,41 +38,41 @@ and nearby rescuers can coordinate help in real time.
 
 ### 1.3 Goals
 
-- _[TODO: Goal 1]_
-- _[TODO: Goal 2]_
-- _[TODO: Goal 3]_
+- *[TODO: Goal 1]*
+- *[TODO: Goal 2]*
+- *[TODO: Goal 3]*
 
 ### 1.4 Non-Goals (out of scope for v1)
 
-- _[TODO: e.g., Donations/payments, vet appointment booking, adoption marketplace]_
+- *[TODO: e.g., Donations/payments, vet appointment booking, adoption marketplace]*
 
 ### 1.5 Success Metrics
 
 | Metric | Target | How measured |
-|--------|--------|--------------|
-| Time-to-first-response on a report | _[TODO]_ | _[TODO]_ |
-| % reports validated within X mins | _[TODO]_ | _[TODO]_ |
-| % cases resolved | _[TODO]_ | _[TODO]_ |
-| Active rescuers per locality | _[TODO]_ | _[TODO]_ |
-| _[Add more]_ | | |
+| --- | --- | --- |
+| Time-to-first-response on a report | *[TODO]* | *[TODO]* |
+| % reports validated within X mins | *[TODO]* | *[TODO]* |
+| % cases resolved | *[TODO]* | *[TODO]* |
+| Active rescuers per locality | *[TODO]* | *[TODO]* |
+| *[Add more]* |  |  |
 
 ## 2. Users & Personas
 
 ### 2.1 Roles & Permissions ✅
 
 | Role | Capabilities | Granted by |
-|------|--------------|-----------|
+| --- | --- | --- |
 | **Admin** (app team) | Create/manage locality groups, appoint moderators, manage users/bans, global oversight | System |
 | **Moderator** (per group) | Validate reports + assign severity, post normal feed messages, pin/triage, verify closures, remove content | Admin |
 | **Rescuer / Member** | Report animals, reply in threads with media, volunteer on cases, request closure | Self sign-up |
-| **Guest** _(optional)_ | _[TODO: read-only? not supported?]_ | — |
+| **Guest** *(optional)* | *[TODO: read-only? not supported?]* | — |
 
 ### 2.2 Personas
 
-- **Reporter** — _[Fill in: motivations, context, tech comfort]_
-- **Rescuer / Volunteer** — _[Fill in]_
-- **Moderator** — _[Fill in]_
-- **Admin** — _[Fill in]_
+- **Reporter** — *[Fill in: motivations, context, tech comfort]*
+- **Rescuer / Volunteer** — *[Fill in]*
+- **Moderator** — *[Fill in]*
+- **Admin** — *[Fill in]*
 
 ## 3. Key Concepts & Information Architecture ✅
 
@@ -93,17 +92,17 @@ App
 
 - **Membership locality** — group(s) a user follows; GPS-*suggested*, user-confirmed,
   manually overridable.
-- **Report locality** — captured per report (GPS + adjustable pin). Report routes to the
-  locality of the **pin**, not the reporter's home.
+- **Report locality** — captured per report (GPS + adjustable pin).
+  Report routes to the locality of the **pin**, not the reporter’s home.
 
 > [!NOTE]
-> See sitemap diagram: _[link to Mermaid file / diagram #1]_
+> See sitemap diagram: *[link to Mermaid file / diagram #1]*
 
 ## 4. Core Decisions (Locked) ✅
 
 | Decision | Resolution |
-|----------|-----------|
-| Account model | Phone-number login (OTP), required to participate |
+| --- | --- |
+| Account model | Phone-number login (OTP), required to participate — design in [rfc-001](../rfcs/rfc-001-phone-otp-login.md) |
 | Locality assignment | Hybrid: GPS-suggest + confirm + manual override; per-report location separate |
 | Severity/urgency | Moderator-validated; fixed 3-tier; reporter may hint; mods can escalate |
 | Resolution | Anyone requests closure + outcome; moderator verifies/approves |
@@ -113,65 +112,74 @@ App
 
 ### 5.1 Onboarding & Auth ✅ / [TODO details]
 
-- Phone number + OTP login. _[TODO: OTP provider? retry/cooldown rules?]_
+- Phone number + OTP login.
+  Design: [rfc-001](../rfcs/rfc-001-phone-otp-login.md) (provider, OTP format/expiry,
+  retry/cooldown, session issuance).
 - Locality onboarding (GPS suggest → confirm → manual override).
-- _[TODO: profile fields required at signup?]_
+- *[TODO: profile fields required at signup?]*
 
 ### 5.2 Home Feed (chat-style)
 
 - Each report = a feed entry/card; moderator messages interspersed.
-- Card shows: thumbnail, severity badge, status, reply count, locality, time. _[TODO: confirm fields]_
-- Unverified reports shown **greyed/muted** until validated. ✅
-- Sorting/filtering: _[TODO: by severity? status? recency?]_
+- Card shows: thumbnail, severity badge, status, reply count, locality, time.
+  *[TODO: confirm fields]*
+- Unverified reports shown **greyed/muted** until validated.
+  ✅
+- Sorting/filtering: *[TODO: by severity? status? recency?]*
 
 ### 5.3 Report Composer
 
 - Inputs: media (photo/video), location pin, animal type, condition, optional emergency
   hint + note. ✅
-- _[TODO: required vs optional fields, media limits, animal type taxonomy]_
+- *[TODO: required vs optional fields, media limits, animal type taxonomy]*
 
 ### 5.4 Report Thread / Detail
 
-- Case header (status, severity, location, reporter) + chat replies with mixed media. ✅
-- Actions: reply, "I am helping" (volunteer), request closure.
-- _[TODO: who can see reporter contact info?]_
+- Case header (status, severity, location, reporter) + chat replies with mixed media.
+  ✅
+- Actions: reply, “I am helping” (volunteer), request closure.
+- *[TODO: who can see reporter contact info?]*
 
 ### 5.5 Severity & Triage (Gate 1) ✅
 
-- Tiers: 🔴 Critical · 🟠 Urgent · 🟢 Routine. _[TODO: exact definitions]_
+- Tiers: 🔴 Critical · 🟠 Urgent · 🟢 Routine.
+  *[TODO: exact definitions]*
 - Moderator triage queue of unverified reports.
-- Reporter may flag "I think this is an emergency" as a hint.
-- Severity is mutable (escalation logged). _[TODO: who can escalate besides mods?]_
+- Reporter may flag “I think this is an emergency” as a hint.
+- Severity is mutable (escalation logged).
+  *[TODO: who can escalate besides mods?]*
 
 ### 5.6 Volunteering / Coordination
 
-- "I am helping" sets case to Acknowledged → In Progress. ✅
-- _[TODO: can multiple rescuers claim? assignment rules?]_
+- “I am helping” sets case to Acknowledged → In Progress.
+  ✅
+- *[TODO: can multiple rescuers claim? assignment rules?]*
 
 ### 5.7 Closure & Verification (Gate 2) ✅
 
 - Anyone requests closure with an **outcome reason** (+ optional proof).
-- Outcome reasons: Rescued/Treated · Adopted/Rehomed · Released/Self-resolved · Deceased ·
-  False alarm/Duplicate.
+- Outcome reasons: Rescued/Treated · Adopted/Rehomed · Released/Self-resolved · Deceased
+  · False alarm/Duplicate.
 - Moderator approves → Resolved/archived, or rejects → back to In Progress.
-- Case stays visible/active while "Closure Requested."
-- _[TODO: is proof mandatory for any outcome?]_
+- Case stays visible/active while “Closure Requested.”
+- *[TODO: is proof mandatory for any outcome?]*
 
 ### 5.8 Moderator Tools
 
-- Triage queue, closure verification queue, post normal messages, pin, remove content. ✅
-- _[TODO: bulk actions? mod-to-mod handoff?]_
+- Triage queue, closure verification queue, post normal messages, pin, remove content.
+  ✅
+- *[TODO: bulk actions? mod-to-mod handoff?]*
 
 ### 5.9 Admin Panel (Web)
 
 - Create/manage groups, define geo-boundaries, create sub-regions, appoint moderators,
   manage users/bans. ✅
-- _[TODO: analytics dashboard? audit log viewer?]_
+- *[TODO: analytics dashboard? audit log viewer?]*
 
 ### 5.10 Notifications [TODO — open decision]
 
 | Severity | Notification behavior (proposed) |
-|----------|----------------------------------|
+| --- | --- |
 | Critical | Push to whole locality |
 | Urgent | Push to opted-in rescuers |
 | Routine | Feed only, no push |
@@ -197,21 +205,21 @@ Validated → Acknowledged → In Progress
 ```
 
 > [!NOTE]
-> Full diagrams: _[link to Mermaid lifecycle + flow diagrams]_
+> Full diagrams: *[link to Mermaid lifecycle + flow diagrams]*
 
 ## 7. Data Model (high-level) ✅ / [TODO fields]
 
 | Entity | Key fields |
-|--------|-----------|
-| **User** | id, phone, name, role(s), home_locality, trust_score, _[TODO]_ |
-| **Group** | id, name, geo_boundary, parent_group, moderators[], _[TODO]_ |
-| **Report** | id, group_id, reporter_id, animal_type, condition, severity, location(lat/long + landmark), media[], status, emergency_hint, created_at, _[TODO]_ |
+| --- | --- |
+| **User** | id, phone, name, role(s), home_locality, trust_score, *[TODO]* |
+| **Group** | id, name, geo_boundary, parent_group, moderators[], *[TODO]* |
+| **Report** | id, group_id, reporter_id, animal_type, condition, severity, location(lat/long + landmark), media[], status, emergency_hint, created_at, *[TODO]* |
 | **Thread** | report_id, participants[], reply_count, last_activity |
 | **Reply** | id, thread_id, author_id, body, media[], type, created_at |
-| **AuditLog** | actor_id, action, target, reason, timestamp _[TODO: scope]_ |
+| **AuditLog** | actor_id, action, target, reason, timestamp *[TODO: scope]* |
 
 > [!NOTE]
-> _[TODO: relationships, indexes, retention/archival policy]_
+> *[TODO: relationships, indexes, retention/archival policy]*
 
 ## 8. User Flows ✅
 
@@ -222,28 +230,29 @@ Validated → Acknowledged → In Progress
 - **Flow E** — Admin group setup
 
 > [!NOTE]
-> Diagrams: _[link to Mermaid file]_
+> Diagrams: *[link to Mermaid file]*
 
 ## 9. Non-Functional Requirements [TODO]
 
-- **Platforms:** _[mobile (iOS/Android)? web? PWA?]_
-- **Performance:** _[feed load time, media upload limits]_
-- **Offline behavior:** _[draft reports offline?]_
-- **Localization / languages:** _[TODO]_
-- **Accessibility:** _[TODO]_
-- **Security & privacy:** _[phone number handling, location privacy, who sees what]_
-- **Scalability:** _[expected groups/users per city]_
+- **Platforms:** *[mobile (iOS/Android)? web? PWA?]*
+- **Performance:** *[feed load time, media upload limits]*
+- **Offline behavior:** *[draft reports offline?]*
+- **Localization / languages:** *[TODO]*
+- **Accessibility:** *[TODO]*
+- **Security & privacy:** *[phone number handling, location privacy, who sees what]*
+- **Scalability:** *[expected groups/users per city]*
 
 ## 10. Edge Cases & Risks ✅ / [TODO]
 
 - **Moderator availability** — critical case at 3am stalls behind validation gate.
-  - Mitigations: multiple mods/group, "request urgent review" escalation, greyed-but-visible
-    unverified reports.
-- **Report routing across localities** — animal reported outside user's home group routes
-  by pin. _[TODO: confirm]_
-- **Duplicate reports** for the same animal. _[TODO: dedup strategy?]_
+  - Mitigations: multiple mods/group, “request urgent review” escalation,
+    greyed-but-visible unverified reports.
+- **Report routing across localities** — animal reported outside user’s home group
+  routes by pin. *[TODO: confirm]*
+- **Duplicate reports** for the same animal.
+  *[TODO: dedup strategy?]*
 - **Premature/abusive closure requests.** Mitigation: mod approval + audit log.
-- _[TODO: add more]_
+- *[TODO: add more]*
 
 ## 11. Open Questions
 
@@ -251,18 +260,18 @@ Validated → Acknowledged → In Progress
 - [ ] Is proof mandatory for closure?
 - [ ] Guest/read-only access supported?
 - [ ] Animal type taxonomy (dogs only at launch?)
-- [ ] _[TODO: add yours]_
+- [ ] *[TODO: add yours]*
 
 ## 12. Milestones / Phasing [TODO]
 
 | Phase | Scope | Target |
-|-------|-------|--------|
-| MVP | _[TODO: must-have features]_ | _[TODO]_ |
-| v1.1 | _[TODO]_ | _[TODO]_ |
-| Later | _[TODO]_ | _[TODO]_ |
+| --- | --- | --- |
+| MVP | *[TODO: must-have features]* | *[TODO]* |
+| v1.1 | *[TODO]* | *[TODO]* |
+| Later | *[TODO]* | *[TODO]* |
 
 ## 13. Appendix
 
-- Mermaid diagrams (sitemap, lifecycle, flows A–E): _[link/path]_
-- Glossary: _[TODO]_
-- References: _[TODO]_
+- Mermaid diagrams (sitemap, lifecycle, flows A–E): *[link/path]*
+- Glossary: *[TODO]*
+- References: *[TODO]*
