@@ -223,14 +223,14 @@ Validated → Acknowledged → In Progress
 
 ## 8. User Flows ✅
 
-- **Flow A** — Report an animal
-- **Flow B** — Rescuer responds
-- **Flow C** — Moderator triage (Gate 1)
-- **Flow D** — Closure verification (Gate 2)
-- **Flow E** — Admin group setup
+Diagrams live in [`flows/`](../flows/README.md) so they have one home and can be linked
+from any document.
 
-> [!NOTE]
-> Diagrams: *[link to Mermaid file]*
+- **Flow A** — [Report a dog](../flows/flow-a-report-a-dog.md)
+- **Flow B** — Rescuer responds *[TODO]*
+- **Flow C** — Moderator triage (Gate 1) *[TODO]*
+- **Flow D** — Closure verification (Gate 2) *[TODO]*
+- **Flow E** — Admin group setup *[TODO]*
 
 ## 9. Non-Functional Requirements [TODO]
 

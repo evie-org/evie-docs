@@ -12,6 +12,7 @@ single source of truth for decisions, proposals, and requirements.
 | `rfcs/` | Requests for Comments — proposals and designs under discussion. |
 | `memos/` | Technical memos — information sharing and findings. |
 | `prds/` | Product Requirements Documents — product scope and requirements. |
+| `flows/` | User-flow diagrams (Mermaid). Linked from PRDs and RFCs; not governed by `docuchango`. |
 | `templates/` | Starting templates for each document type. |
 | `static/` | Static assets referenced by documents. |
 

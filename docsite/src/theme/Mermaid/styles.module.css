@@ -1,0 +1,15 @@
+/* Force the Mermaid SVG to fill the container width instead of its intrinsic
+ * max-width, so wide LR flows scale up to the full column and the box grows
+ * vertically to match. !important overrides Mermaid's inline max-width. */
+
+/* The theme wraps the svg in .docusaurus-mermaid-container. Inside our flex
+ * content div that container shrink-wraps to the svg, so force it full width. */
+.content :global(.docusaurus-mermaid-container) {
+  width: 100%;
+}
+
+.content :global(svg) {
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+}
