@@ -19,4 +19,4 @@ Use GitHub admonition style: `> [!NOTE]`, `> [!TIP]`, `> [!IMPORTANT]`, `> [!WAR
 
 ## Formatting
 
-Run `make fmt-docs validate-docs` to format and validate all docs.
+Run `make fmt` and `make validate` to format and validate all docs.

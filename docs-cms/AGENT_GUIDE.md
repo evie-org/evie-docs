@@ -20,8 +20,8 @@ Run these from the `docs-cms/` directory:
 | `docuchango validate --dry-run` | Preview issues without modifying files. |
 | `docuchango validate --verbose` | Validate with detailed output. |
 
-From the repository root you can also run `make validate-docs-cms`,
-`make validate-docs-cms-dry-run`, and `make validate-docs-cms-verbose`.
+From the repository root, `make validate` runs document validation along with formatting
+and link checks.
 
 ## Agent workflow
 

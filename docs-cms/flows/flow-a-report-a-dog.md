@@ -4,18 +4,16 @@ sidebar_position: 2
 ---
 # Flow A — Help a dog
 
-A signed-in member opens the app, optionally switches locality, and chooses how to help
-a dog they have spotted: either **report it to the group** (kicks off the moderated case
-flow) or **help it themselves** (offline action with optional post-action logging into
-the datastore).
+From the home feed a signed-in member chooses how to help a dog: report it to the group
+(moderated case flow) or help it themselves (offline, with optional logging).
 
 | Field | Value |
 | --- | --- |
 | **Actor** | Rescuer / Member |
 | **Goal** | Get help to a dog — via the community or directly |
-| **Preconditions** | Signed in via phone OTP (see [rfc-001](../rfcs/rfc-001-phone-otp-login.md)); member is in at least one locality group (PRD §3.2) |
+| **Preconditions** | Signed in via phone OTP ([rfc-001](../rfcs/rfc-001-phone-otp-login.md)); member of at least one locality group (PRD §3.2) |
 | **Trigger** | User taps “Help a dog” on the home feed |
-| **Postcondition** | Either a “Submitted / Unverified” case exists on the feed, or a `CareLog` entry exists in the datastore, or nothing is recorded — see branches below |
+| **Postcondition** | A “Submitted / Unverified” case, a `CareLog` entry, or nothing — depending on the branch |
 
 ## Diagram
 
@@ -67,34 +65,22 @@ PRD.
 
 ## Branches
 
-### Branch 1 — Report to the group (moderated)
+**Report to the group (moderated).** The standard case flow.
+Gate 1 — moderator validation — is the bottleneck for time-to-first-response (see the
+“Moderator availability” risk, PRD §10).
 
-The canonical case flow.
-QR-tag scan is preferred (gives the dog a unique identity); manual entry is the
-fallback. Submission creates a “Submitted / Unverified” card, greyed on the feed until a
-moderator validates and assigns severity at **Gate 1** (PRD §5.5, §6). This gate is the
-documented bottleneck for time-to-first-response (PRD §10 — “Moderator availability”
-risk).
-
-### Branch 2 — Help it myself (offline + optional log)
-
-The user wants to act *now*: the app’s job is to **serve them first** and **capture data
-second**. The Resources screen (partner vets, emergency services, auto-driver contacts,
-etc. — content TBD) is shown immediately, with no form in the way.
-After the action — or whenever the user comes back — they are optionally prompted to log
-it. If they accept, a minimal `CareLog` entry is created in the datastore: view-only, no
-moderator gate, not on the main feed.
-
-The rationale and principles for capturing self-help are in
-[memo-001](../memos/memo-001-self-help-capture.md); the detailed `CareLog` model will be
-defined in a follow-up RFC and is not yet in PRD §7.
+**Help it myself (offline + optional log).** Serve first, capture second: the Resources
+screen (content TBD) appears with no form in the way, and logging a `CareLog` is
+optional and after the fact.
+Rationale in [memo-001](../memos/memo-001-self-help-capture.md); the `CareLog` model is
+deferred to a follow-up RFC and is not yet in PRD §7.
 
 ## Doc gaps surfaced by this flow
 
 | Concept | Where it belongs | Status |
 | --- | --- | --- |
-| “Help a dog” button (entry point) | PRD §5.2 Home Feed | not yet specified |
-| Location switcher (top bar) | PRD §5.2 | not yet specified |
-| QR-tag → Dog identity (Dog/Tag entity) | PRD §5.3 + §7 | WIP |
-| “Help it myself” → Resources screen | New PRD §5.X | not yet specified |
-| `CareLog` entity & lifecycle | PRD §7 + future RFC | proposed in [memo-001](../memos/memo-001-self-help-capture.md) |
+| “Help a dog” button (entry point) | PRD §5.2 Home Feed | not specified |
+| Location switcher (top bar) | PRD §5.2 | not specified |
+| QR-tag → Dog identity | PRD §5.3 + §7 | WIP |
+| “Help it myself” → Resources screen | new PRD §5.X | not specified |
+| `CareLog` entity & lifecycle | PRD §7 + future RFC | see [memo-001](../memos/memo-001-self-help-capture.md) |

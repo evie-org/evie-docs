@@ -41,8 +41,8 @@ Link related documents where helpful.
 
 ```bash
 # From the repository root
-make fmt-docs
-make validate-docs
+make fmt
+make validate
 ```
 
 Fix any reported issues before committing.

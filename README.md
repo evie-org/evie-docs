@@ -3,9 +3,7 @@ sidebar_position: 1
 ---
 # Kaneer
 
-Documentation for Kaneer.
-
-This repository is a documentation-as-code framework with two cooperating systems:
+A documentation-as-code framework with two cooperating systems:
 
 1. **`docs-cms/`** — a governed knowledge base of structured documents (ADRs, RFCs,
    memos, PRDs) validated by the `docuchango` CLI. This is the single source of truth.
@@ -23,28 +21,60 @@ top-level `Makefile` wires the tooling together.
 | `docs/` | Free-form documentation tree. |
 | `docs-cms/` | Governed CMS — architecture decisions, RFCs, memos, PRDs. |
 | `docsite/` | Docusaurus site that renders the docs. |
-| `Makefile` | Format and validation targets. |
+| `.githooks/` | Versioned git hooks (pre-commit gate). |
+| `Makefile` | Format, validation, and hook-install targets. |
 
-## Quick start
+## Prerequisites
+
+- **Node.js 18+** and npm (CI uses Node 22) — for the Docusaurus site and the link
+  checker.
+- **Python 3.10+** and pip — for the `docuchango` validator and `flowmark` formatter.
+- **GNU Make** — to run the targets below.
+
+## First-time setup
+
+Run these once after cloning:
 
 ```bash
-# Format and validate all docs
-make fmt-docs
-make validate-docs
+# 1. Python tools (docuchango + flowmark) in a local virtualenv
+python -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\Activate.ps1
+pip install docuchango flowmark
 
-# Build the documentation site
-cd docsite && npm install && npm run build
+# 2. Markdown link checker (global npm package)
+npm install -g markdown-link-check
+
+# 3. Docusaurus site dependencies
+cd docsite && npm install && cd ..
+
+# 4. Enable the git pre-commit hook (format + validation gate)
+make hooks
 ```
 
-## Tooling prerequisites
+## Daily commands
 
-These external tools must be available:
+```bash
+# Format all Markdown, then validate
+make fmt
+make validate
 
-- [`docuchango`](https://pypi.org/project/docuchango/) — CMS validator (Python;
-  installable via `uvx docuchango` or `pip install docuchango`).
-- `flowmark` — Markdown formatter (`pip install flowmark`).
-- `markdown-link-check` — Markdown link checker (`npm i -g markdown-link-check`).
-- Node.js 18+ and npm for the Docusaurus site.
+# Preview the site locally (http://localhost:3000)
+cd docsite && npm start
+```
+
+## Pre-commit checks
+
+`make hooks` points git at `.githooks/`, installing a pre-commit gate that runs
+`make validate` (formatting, document validation, and links) and **blocks the commit**
+if anything fails. Run `make fmt` to fix formatting.
+
+Notes:
+
+- The hook is **local and opt-in**: each clone must run `make hooks` once, and the gate
+  can be bypassed with `git commit --no-verify`. It is fast feedback, not a hard
+  guarantee.
+- For enforcement that cannot be bypassed, the same `make validate` runs in CI on pull
+  requests; mark it a required status check under branch protection on `main`.
 
 ## Make targets
 

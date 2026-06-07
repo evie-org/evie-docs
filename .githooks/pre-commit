@@ -1,0 +1,22 @@
+#!/bin/sh
+#
+# Pre-commit gate: blocks the commit unless `make validate` passes
+# (formatting check, document validation, and link check).
+# Installed via `make hooks`. Bypass with: git commit --no-verify
+
+# Add the project virtualenv to PATH so flowmark/docuchango resolve even when the
+# commit is launched from an IDE/GUI that did not activate it. A POSIX path (pwd)
+# works on every OS and survives the `cd` inside Makefile recipes.
+ROOT="$(pwd)"
+if [ -d "$ROOT/.venv/Scripts" ]; then
+	PATH="$ROOT/.venv/Scripts:$PATH"   # Windows
+elif [ -d "$ROOT/.venv/bin" ]; then
+	PATH="$ROOT/.venv/bin:$PATH"       # macOS / Linux
+fi
+export PATH
+
+if ! make validate; then
+	echo
+	echo "Validation failed. Run 'make fmt' to fix formatting, resolve any other issues, then commit again."
+	exit 1
+fi
