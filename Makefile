@@ -7,7 +7,7 @@ export PYTHONUTF8 := 1
 
 .DEFAULT_GOAL := help
 
-.PHONY: fmt validate hooks help
+.PHONY: fmt validate help
 
 # Format all Markdown in place.
 fmt:
@@ -25,13 +25,7 @@ validate:
 	@markdown-link-check -q --config markdown-link-check-config.json --ignore docs-cms/templates,.venv,docsite .
 	@echo All checks passed.
 
-# Install the git pre-commit hook (runs `make validate`).
-hooks:
-	@git config core.hooksPath .githooks
-	@echo Git hooks installed. core.hooksPath set to .githooks
-
 help:
 	@echo Kaneer Make targets:
 	@echo   fmt        Format all Markdown
 	@echo   validate   Check formatting, validate docs, and check links
-	@echo   hooks      Install the git pre-commit hook

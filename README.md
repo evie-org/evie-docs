@@ -21,8 +21,7 @@ top-level `Makefile` wires the tooling together.
 | `docs/` | Free-form documentation tree. |
 | `docs-cms/` | Governed CMS — architecture decisions, RFCs, memos, PRDs. |
 | `docsite/` | Docusaurus site that renders the docs. |
-| `.githooks/` | Versioned git hooks (pre-commit gate). |
-| `Makefile` | Format, validation, and hook-install targets. |
+| `Makefile` | Format and validation targets. |
 
 ## Prerequisites
 
@@ -46,9 +45,6 @@ npm install -g markdown-link-check
 
 # 3. Docusaurus site dependencies
 cd docsite && npm install && cd ..
-
-# 4. Enable the git pre-commit hook (format + validation gate)
-make hooks
 ```
 
 ## Daily commands
@@ -62,19 +58,10 @@ make validate
 cd docsite && npm start
 ```
 
-## Pre-commit checks
+## Continuous integration
 
-`make hooks` points git at `.githooks/`, installing a pre-commit gate that runs
-`make validate` (formatting, document validation, and links) and **blocks the commit**
-if anything fails. Run `make fmt` to fix formatting.
-
-Notes:
-
-- The hook is **local and opt-in**: each clone must run `make hooks` once, and the gate
-  can be bypassed with `git commit --no-verify`. It is fast feedback, not a hard
-  guarantee.
-- For enforcement that cannot be bypassed, the same `make validate` runs in CI on pull
-  requests; mark it a required status check under branch protection on `main`.
+CI runs `make validate` on pull requests (see `.github/workflows/validate.yml`). Mark it
+a required status check under branch protection on `main` to block merges that fail.
 
 ## Make targets
 
