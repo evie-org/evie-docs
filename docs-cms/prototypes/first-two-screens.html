@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kaneer — first two screens prototype</title>
+<style>
+  :root{
+    --bg:#0b1220; --card:#fff; --ink:#0f172a; --muted:#64748b; --hint:#94a3b8;
+    --line:#e2e8f0; --line2:#cbd5e1; --info-bg:#e6f1fb; --info:#185fa5;
+    --ok-bg:#e1f5ee; --ok:#0f6e56; --grad-a:#2563eb; --grad-b:#06b6d4;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:radial-gradient(1200px 600px at 50% -10%, #1e293b, #0b1220);
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 16px;color:var(--ink);}
+  .wrap{text-align:center;}
+  .steps{display:flex;gap:8px;justify-content:center;margin-bottom:16px;}
+  .dot{font-size:11px;padding:5px 11px;border-radius:20px;background:#1e293b;color:#94a3b8;}
+  .dot.on{background:#1d4ed8;color:#fff;}
+  .frame{background:#111827;border-radius:34px;padding:14px;width:330px;margin:0 auto;box-shadow:0 30px 80px rgba(0,0,0,.5);}
+  .scr{background:var(--card);border-radius:22px;min-height:540px;padding:26px 22px;position:relative;overflow:hidden;}
+  .brand{display:flex;align-items:center;gap:10px;margin-bottom:30px;}
+  .brand b{font-size:19px;font-weight:600;}
+  h3{margin:0 0 6px;font-size:20px;font-weight:600;}
+  p.sub{font-size:13px;color:var(--muted);margin:0 0 24px;line-height:1.6;}
+  label{font-size:12px;color:var(--muted);}
+  input{font-size:15px;padding:11px 12px;border:1px solid var(--line2);border-radius:10px;outline:none;width:100%;}
+  input:focus{border-color:var(--grad-a);box-shadow:0 0 0 3px rgba(37,99,235,.15);}
+  .row{display:flex;gap:8px;margin:6px 0 20px;}
+  .cc{display:flex;align-items:center;padding:0 13px;border:1px solid var(--line2);border-radius:10px;font-size:14px;}
+  .btn{width:100%;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:600;cursor:pointer;
+    background:linear-gradient(120deg,var(--grad-a),var(--grad-b));color:#fff;}
+  .btn:active{transform:scale(.98);}
+  .ghost{background:#f1f5f9;color:#334155;}
+  .note{font-size:11px;color:var(--hint);margin:14px 0 0;}
+  .otp{display:flex;gap:8px;justify-content:space-between;margin-bottom:20px;}
+  .otp input{width:40px;text-align:center;font-size:20px;padding:11px 0;}
+  .pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--info);background:var(--info-bg);padding:8px 11px;border-radius:8px;margin-bottom:14px;}
+  .loc{display:flex;align-items:center;justify-content:space-between;width:100%;text-align:left;border:1px solid var(--line);
+    background:#fff;border-radius:10px;padding:13px 14px;font-size:15px;cursor:pointer;margin-bottom:8px;color:var(--ink);}
+  .loc.on{border:2px solid var(--grad-a);}
+  .tick{opacity:0;color:var(--grad-a);font-weight:700;}
+  .loc.on .tick{opacity:1;}
+  .hide{display:none;}
+  .center{text-align:center;}
+  .okc{width:66px;height:66px;border-radius:50%;background:var(--ok-bg);color:var(--ok);font-size:32px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;margin:60px auto 18px;}
+  a{color:var(--info);}
+  .cap{color:#94a3b8;font-size:12px;margin-top:18px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="steps" id="steps">
+    <span class="dot on" data-s="0">1 · Phone</span>
+    <span class="dot" data-s="1">2 · Verify</span>
+    <span class="dot" data-s="2">3 · Locality</span>
+  </div>
+
+  <div class="frame">
+    <div class="scr">
+      <div class="brand">
+        <svg width="32" height="32" viewBox="0 0 100 100" aria-hidden="true">
+          <defs><linearGradient id="kg" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#2563eb"/><stop offset="1" stop-color="#06b6d4"/></linearGradient></defs>
+          <rect x="4" y="4" width="92" height="92" rx="22" fill="url(#kg)"/>
+          <path d="M34 26 v48" stroke="#fff" stroke-width="9" stroke-linecap="round"/>
+          <path d="M68 26 L40 50 L68 74" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+        <b>Kaneer</b>
+      </div>
+
+      <!-- Screen 1a: phone -->
+      <div class="screen" data-s="0">
+        <h3>Enter your phone number</h3>
+        <p class="sub">We'll text you a 6-digit code to verify your number. Sign in and sign up use the same step.</p>
+        <label>Phone number</label>
+        <div class="row">
+          <span class="cc">+91</span>
+          <input id="phone" inputmode="numeric" maxlength="10" placeholder="98765 43210" />
+        </div>
+        <button class="btn" id="send">Send OTP →</button>
+        <p class="note">🔒 One challenge per 30s · code valid 5 min · 10/day per number</p>
+      </div>
+
+      <!-- Screen 1b: OTP -->
+      <div class="screen hide" data-s="1">
+        <h3>Enter the code</h3>
+        <p class="sub">Sent to <span id="to">+91 98765 43210</span> · <a href="#" id="edit">edit</a></p>
+        <div class="otp" id="otp">
+          <input inputmode="numeric" maxlength="1"/><input inputmode="numeric" maxlength="1"/>
+          <input inputmode="numeric" maxlength="1"/><input inputmode="numeric" maxlength="1"/>
+          <input inputmode="numeric" maxlength="1"/><input inputmode="numeric" maxlength="1"/>
+        </div>
+        <button class="btn" id="verify">Verify ✓</button>
+        <p class="note center">Resend code in <span id="cd">30s</span></p>
+      </div>
+
+      <!-- Screen 2: locality -->
+      <div class="screen hide" data-s="2">
+        <h3>Which locality?</h3>
+        <p class="sub">Pick the area you want to help in. You can join more later.</p>
+        <span class="pill">📍 Suggested from your location</span>
+        <div id="locs">
+          <button class="loc on" data-n="Koramangala"><span>📍 Koramangala</span><span class="tick">✓</span></button>
+          <button class="loc" data-n="HSR Layout"><span>📍 HSR Layout</span><span class="tick">✓</span></button>
+          <button class="loc" data-n="Indiranagar"><span>📍 Indiranagar</span><span class="tick">✓</span></button>
+          <button class="loc" data-n="JP Nagar"><span>📍 JP Nagar</span><span class="tick">✓</span></button>
+        </div>
+        <button class="btn" id="confirm" style="margin-top:10px;">Confirm & continue →</button>
+      </div>
+
+      <!-- Done -->
+      <div class="screen hide center" data-s="3">
+        <div class="okc">✓</div>
+        <h3>You're in</h3>
+        <p class="sub">Helping in <strong id="final">Koramangala</strong>.<br/>Next stop: the locality feed.</p>
+        <button class="btn ghost" id="restart" style="margin-top:20px;">↻ Replay</button>
+      </div>
+    </div>
+  </div>
+  <div class="cap">Kaneer · prototype — phone OTP login (rfc-001) → locality onboarding (PRD §5.1)</div>
+</div>
+
+<script>
+(function(){
+  var sel="Koramangala", t;
+  function show(n){
+    document.querySelectorAll('.screen').forEach(function(e){e.classList.toggle('hide', +e.dataset.s!==n);});
+    document.querySelectorAll('#steps .dot').forEach(function(d){d.classList.toggle('on', +d.dataset.s <= Math.min(n,2));});
+  }
+  document.getElementById('send').onclick=function(){
+    var p=document.getElementById('phone').value.trim();
+    if(p) document.getElementById('to').textContent='+91 '+p;
+    show(1); startcd(); var c=document.querySelectorAll('#otp input'); if(c[0])c[0].focus();
+  };
+  var cells=document.querySelectorAll('#otp input');
+  cells.forEach(function(c,i){c.addEventListener('input',function(){if(c.value&&cells[i+1])cells[i+1].focus();});});
+  document.getElementById('edit').onclick=function(e){e.preventDefault();show(0);};
+  document.getElementById('verify').onclick=function(){show(2);};
+  document.querySelectorAll('.loc').forEach(function(b){b.onclick=function(){
+    document.querySelectorAll('.loc').forEach(function(x){x.classList.remove('on');});
+    b.classList.add('on'); sel=b.dataset.n;
+  };});
+  document.getElementById('confirm').onclick=function(){document.getElementById('final').textContent=sel;show(3);};
+  document.getElementById('restart').onclick=function(){show(0);};
+  function startcd(){var n=30,el=document.getElementById('cd');clearInterval(t);el.textContent=n+'s';
+    t=setInterval(function(){n--;if(n<=0){clearInterval(t);el.textContent='now';}else{el.textContent=n+'s';}},1000);}
+})();
+</script>
+</body>
+</html>

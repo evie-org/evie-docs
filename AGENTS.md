@@ -11,6 +11,7 @@ When working on documentation in `docs-cms/` (including `adrs/`, `memos/`, `prds
 - Treat `docs-cms/AGENT_GUIDE.md` as the primary workflow reference.
 - Treat `docs-cms/BEST_PRACTICES.md` as the style/quality reference.
 - On conflict, follow AGENT_GUIDE first, then BEST_PRACTICES where compatible.
+- Keep generated documents concise; favor diagrams, tables, and other visuals over prose.
 
 ## Notes and Admonitions
 
