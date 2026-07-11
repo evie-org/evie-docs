@@ -1,6 +1,6 @@
 ---
 title: Phone Number OTP Login
-status: Draft
+status: Accepted
 author: Engineering Team
 created: 2026-06-05T00:00:00Z
 tags: [auth, design, rfc]
@@ -9,6 +9,19 @@ project_id: kaneer
 doc_uuid: 88e7a7d8-6f2f-48b6-b474-8877a1854185
 ---
 <!-- markdown-link-check-disable -->
+> **Amended by [adr-001](../adrs/adr-001-firebase-phone-verification.md) (2026-07, implemented).**
+> Phone verification is delegated to **Firebase** (verification only — we still issue our
+> own sessions).
+> **Superseded by the ADR:** the flow overview, §OTP parameters, §Provider, the OTP
+> request-side limits in §Rate limiting, the `/auth/otp/*` endpoints in §API Changes, the
+> `OtpChallenge` entity in §Data Model Changes, and the §Adoption Strategy rollout — DLT
+> registration is no longer a launch gate.
+> **Retained unchanged:** the account model (sign-in = sign-up, `is_new_user`,
+> post-verification onboarding), **§Session issuance in full** (the reason the hybrid model
+> was chosen), and the accepted tradeoffs in §Drawbacks.
+> Superseded sections are marked inline and kept for historical rationale; the implemented
+> design lives in the ADR and the `evie-services/evie-auth` README.
+
 # Summary
 
 This RFC proposes *how* to implement phone-number login via one-time passcode (OTP), the
@@ -59,6 +72,11 @@ prior document.
 
 ## Flow overview
 
+> **Superseded by adr-001** — the client now verifies the phone with the Firebase SDK and
+> exchanges the resulting ID token at `POST /auth/session`; steps 1–3 below describe the
+> pre-Firebase design. The account-model paragraph after the diagram still holds
+> (`is_new_user` is returned by `/auth/session`).
+
 ```text
 1. Client POST /auth/otp/request { phone }           → 200 { challenge_id, expires_at }
 2. Provider sends 6-digit code via SMS
@@ -74,6 +92,9 @@ not before, to keep the auth step frictionless.
 
 ## OTP parameters
 
+> **Superseded by adr-001** — Firebase owns code generation, delivery, expiry, and attempt
+> limits end to end; none of the parameters below are ours to set anymore.
+
 | Parameter | Value | Rationale |
 | --- | --- | --- |
 | Code length | 6 digits | Standard; ~1M space, paired with attempt limits |
@@ -86,7 +107,21 @@ Codes are generated with a cryptographically secure RNG. Only a **hash** of the 
 stored server-side (e.g. HMAC-SHA256 with a server pepper); the plaintext exists only in
 the SMS payload. Verification compares hashes in constant time.
 
+**Brute-force ceiling.** The 5-attempt lock is *per challenge*; re-requesting issues a
+new challenge with a fresh attempt budget, so the per-challenge lock alone does **not**
+bound total guesses. The real ceiling comes from the per-phone *request* cap acting with
+it: at most 10 codes/day × 5 attempts = 50 guesses/day against a 1,000,000-code space,
+i.e. P(hit) ≤ 50/1e6 ≈ **0.005%/day per phone**. The per-challenge lock and the per-phone
+request cap are load-bearing *together* — neither is sufficient alone, so both are
+required for the ceiling to hold.
+
 ## Provider
+
+> **Superseded by adr-001** — the provider decision landed: **Firebase Phone Auth,
+> verification only**. The `OtpSender` design below (and its `console|allowlist|sms` beta
+> plan) was implemented as a scaffold but never shipped; self-managed codes + raw SMS
+> remains the documented fallback if Firebase pricing, India deliverability, or data
+> residency disappoints.
 
 Proposal: use a dedicated programmable-SMS provider behind a thin internal interface
 (`OtpSender`) so the vendor is swappable.
@@ -95,12 +130,32 @@ retries, and fraud signals, reducing what we build and store.
 The provider decision is significant and long-lived; once chosen it should be recorded
 in an **ADR** referencing this RFC.
 
-> Fill in: confirm Twilio Verify vs.
-> self-managed codes + raw SMS (Twilio/Plivo/MSG91). India deliverability and
-> DLT/sender-ID registration are decisive factors and need a spike.
-> See Unresolved Questions.
+**MVP / closed beta (decided):** no SMS provider is wired up yet. `OtpSender` ships with
+three implementations selected by server-side config (`OTP_SENDER=console|allowlist|sms`):
+
+- `console` — local dev only; code is logged server-side.
+- `allowlist` — **the beta mode.** Only allowlisted tester phone numbers may request
+  OTPs. The code is generated, hashed, and verified *exactly* as in production — only
+  **delivery** is stubbed: the fresh code is surfaced to the tester out-of-band (returned
+  to the allowlisted caller / a dev channel) instead of over SMS. Non-allowlisted numbers
+  receive the same generic response as a rate-limited request (no enumeration). All
+  attempt limits and rate limits stay active. Because only the delivery seam differs, the
+  generation → verify → data path is the production path unchanged; and because no SMS is
+  sent, the beta runs with **no DLT registration**. This is a pure `OtpSender` swap, which
+  is why going to production is a config flip, not a code change.
+- `sms` — production; requires the provider decision below and completed DLT
+  registration.
+
+The verify path, data model, and endpoints are identical across modes — going to
+production is a config flip, not a code change.
 
 ## Rate limiting & abuse controls
+
+> **Partially superseded by adr-001** — OTP request-side abuse (the table below) is now
+> Firebase's concern (reCAPTCHA attestation; App Check enforcement is an ADR open item).
+> What remains ours is rate limiting on `/auth/session` and `/auth/token/refresh`, which
+> lands in the planned **proxy/gateway** service in front of all evie services — evie-auth
+> itself stays middleware-free by design.
 
 Layered limits, keyed independently so one axis can’t be bypassed by varying another:
 
@@ -116,16 +171,34 @@ A resend uses a cooldown (30s) and counts against the per-phone hourly cap.
 Abusive numbers/IPs can be soft-blocked; repeat offenders surface to Admin (prd-001
 §2.1).
 
+**Production hardening (gated on `OTP_SENDER=sms`).** Before public SMS launch, add
+request-side defenses the allowlist beta does not need: CAPTCHA or app attestation on
+`/auth/otp/request`, and a **global daily SMS-spend circuit-breaker** that trips the
+sender to a safe mode when spend crosses a threshold — SMS is the line item that scales
+directly with abuse, so a hard spend ceiling caps the blast radius of any bypass.
+
 ## Session issuance
+
+> **Retained by adr-001 and implemented** — this section is why the hybrid model was
+> chosen. Live in `evie-auth`: 15-min HS256 access JWT (claims: `sub`, `roles`) + 30-day
+> rotating refresh token; reuse → family revoke is specified here and still pending in code.
 
 On successful verify, issue a short-lived **access token** (JWT, ~15 min) plus a
 long-lived **refresh token** (opaque, server-stored, rotating on use, revocable).
 Refresh tokens bind to a device record so Admin bans and user-initiated “sign out
 everywhere” can revoke them.
+Rotation is mandatory: each refresh revokes the presented token and issues a new pair.
+**Reuse of an already-rotated (revoked) refresh token is treated as a theft signal** — it
+revokes the entire token family for that session, forcing re-authentication, since a
+legitimate client never replays a rotated token.
 Token claims carry `user_id` and `role(s)` to drive authorization (Admin / Moderator /
 Rescuer per prd-001 §2.1).
 
 ## API Changes
+
+> **Superseded by adr-001** — the two OTP endpoints are replaced by a single
+> `POST /auth/session` `{ firebase_id_token }` → `{ access_token, refresh_token,
+> is_new_user }`; refresh and logout are unchanged and implemented as specified.
 
 New endpoints:
 
@@ -136,6 +209,11 @@ New endpoints:
 - `POST /auth/logout` — revokes the presented refresh token (optionally all devices)
 
 ## Data Model Changes
+
+> **Amended by adr-001** — `OtpChallenge` is removed (Firebase owns code state); `User`
+> additionally gains `firebase_uid` (unique identity binding) and `role`
+> (`user` | `moderator` | `admin`, default `user`; elevation is an out-of-band admin
+> action). `Device / RefreshToken` is unchanged.
 
 Extends prd-001 §7:
 
@@ -162,6 +240,13 @@ Phone numbers are normalized to E.164 on entry so no later backfill is required.
   affects spend.
 - **Phone numbers are recycled** — a reassigned number could inherit a prior identity.
   Mitigated by re-verification on new devices and ban-by-account, not just by number.
+  The residual risk is **explicitly accepted for v1's threat model** (community animal
+  reports); revisit if privileged roles or higher-trust actions are added.
+- **`is_new_user` leaks prior registration** — the verify response reveals whether a
+  number already had an account, an account-enumeration signal. The leak is bounded: it
+  reaches only a caller who has *already* passed OTP verification for that number (i.e.
+  someone controlling the phone). Accepted for v1 to keep onboarding routing simple;
+  revisit if enumeration becomes a concern.
 - **SIM-swap / SMS-interception** risk; OTP-over-SMS is “weak 2FA.” Acceptable for v1’s
   threat model (community animal reports), revisit if privileged roles need stronger
   auth.
@@ -182,21 +267,37 @@ Phone numbers are normalized to E.164 on entry so no later backfill is required.
 
 # Adoption Strategy
 
+> **Superseded by adr-001** — beta and production share one Firebase path (test phone
+> numbers / emulator vs. live SMS); the staged sender rollout and DLT gate below no longer
+> apply. The client work estimate still holds.
+
 This is the only authentication path at launch, so adoption is implicit — every user
 hits it on first run.
 No existing users to migrate.
+Rollout order: closed beta on the `allowlist` sender (no SMS dependency) → DLT
+registration + provider bake-off in parallel → flip `OTP_SENDER=sms` for public launch.
 Client work: a two-screen flow (enter number → enter code) plus resend/cooldown UI
 states.
 
 # Unresolved Questions
 
-- Provider: Twilio Verify vs.
-  self-managed + raw SMS (Plivo/MSG91) — needs an India deliverability + DLT spike.
-  Decision to be captured in a follow-up ADR.
-- Exact rate-limit thresholds — the table above is a starting proposal pending load and
-  abuse modeling.
-- Access-token lifetime and refresh-rotation policy specifics.
-- Is a non-SMS fallback (voice/WhatsApp) in scope for v1 or deferred?
+- ~~**Entity for DLT (launch gate):**~~ **Resolved by [adr-001](../adrs/adr-001-firebase-phone-verification.md):**
+  Firebase delivers the SMS, so DLT Principal-Entity registration is no longer a launch
+  gate. The remaining entity need is a Google Cloud **billing** account (a payment method),
+  not DLT. Original text retained for history: we have no Indian business entity, and DLT
+  registration would have required one (sole proprietorship + GST, per a CA).
+- ~~Provider: Twilio Verify vs. self-managed + raw SMS~~ **Resolved by
+  [adr-001](../adrs/adr-001-firebase-phone-verification.md):** Firebase Phone Auth
+  (verification only). Self-managed + raw SMS is retained as the documented fallback;
+  Firebase-specific open items (India deliverability/pricing at scale, App Check
+  enforcement, data residency) are tracked in the ADR.
+- Rate limiting on `/auth/session` + `/auth/token/refresh` — thresholds and enforcement
+  live in the planned proxy/gateway service; to be settled in that service's design doc.
+
+*Resolved in this revision:* access-token lifetime + refresh-rotation policy (15m access /
+30d refresh, mandatory rotation with reuse-detection → family revoke — see §Session
+issuance); non-SMS fallback (voice/WhatsApp) is **deferred**, out of scope for v1 (see
+Future Possibilities).
 
 # Future Possibilities
 
