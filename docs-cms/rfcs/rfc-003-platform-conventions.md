@@ -3,7 +3,7 @@ title: Platform Conventions & Foundational Decisions
 status: Draft
 author: Engineering Team
 created: 2026-06-13T00:00:00Z
-tags: [platform, conventions, architecture, design, rfc]
+tags: [architecture, conventions, design, platform, rfc]
 id: rfc-003
 project_id: kaneer
 doc_uuid: 1756ca43-e924-436b-a8a5-491698123a88
@@ -11,20 +11,22 @@ doc_uuid: 1756ca43-e924-436b-a8a5-491698123a88
 <!-- markdown-link-check-disable -->
 # Summary
 
-[rfc-001](rfc-001-phone-otp-login.md) surfaced cross-cutting decisions provisionally and
-said they should be ratified "once a second feature (rfc-002) confirms the pattern."
-[rfc-002](rfc-002-chat-messaging.md) is that feature. This RFC **collects every
-provisional assumption** from both and **proposes a concrete decision** for each, so every
-future endpoint builds on a settled foundation.
+[rfc-001](./rfc-001-phone-otp-login.md) surfaced cross-cutting decisions provisionally
+and said they should be ratified “once a second feature (rfc-002) confirms the pattern.”
+[rfc-002](./rfc-002-chat-messaging.md) is that feature.
+This RFC **collects every provisional assumption** from both and **proposes a concrete
+decision** for each, so every future endpoint builds on a settled foundation.
 
 > [!NOTE]
-> Per rfc-001, these conventions ultimately belong in **ADRs**. This RFC is the proposal;
-> on approval, each ✅ row graduates into a short ADR (see [Adoption](#adoption-strategy)).
+> Per rfc-001, these conventions ultimately belong in **ADRs**. This RFC is the
+> proposal; on approval, each ✅ row graduates into a short ADR (see
+> [Adoption](#adoption-strategy)).
 
 # Motivation
 
-Assumptions currently live as inline caveats in two RFCs. Without a single ratified source
-they drift, get re-litigated per feature, and leave new endpoints guessing.
+Assumptions currently live as inline caveats in two RFCs.
+Without a single ratified source they drift, get re-litigated per feature, and leave new
+endpoints guessing.
 
 # Decisions at a glance
 
@@ -50,12 +52,15 @@ Legend: ✅ propose to confirm · 🆕 newly proposed here · ⏳ defer (feature
 # Proposed decisions (detail)
 
 ## 2 · API versioning 🆕
-`/v1/...` prefix on every route now. Cheap insurance; avoids a painful retrofit when a
-breaking change lands. Bump the prefix only on incompatible changes; additive fields are
-not breaking.
+
+`/v1/...` prefix on every route now.
+Cheap insurance; avoids a painful retrofit when a breaking change lands.
+Bump the prefix only on incompatible changes; additive fields are not breaking.
 
 ## 4 · Timestamps 🆕
-Store `timestamptz` (UTC). Serialize as ISO-8601 `Z` strings. Never store local time.
+
+Store `timestamptz` (UTC). Serialize as ISO-8601 `Z` strings.
+Never store local time.
 
 ## 5 · Identifiers 🆕 (generalizes rfc-002)
 
@@ -65,17 +70,18 @@ Store `timestamptz` (UTC). Serialize as ISO-8601 `Z` strings. Never store local 
 | Secrets / tokens / unguessable handles | **UUIDv4** (or CSPRNG) | no timestamp leak, not enumerable |
 
 > [!TIP]
-> Mirrors rfc-002: `id` (UUIDv7) is identity/order; OTP codes, refresh tokens, share links
-> stay random.
+> Mirrors rfc-002: `id` (UUIDv7) is identity/order; OTP codes, refresh tokens, share
+> links stay random.
 
 ## 6 · Datastore 🆕
-**PostgreSQL** as the primary store — relational fit for User/Group/Report/Thread/Message,
-JSONB for `media`/`metadata`, modest per-city scale.
+
+**PostgreSQL** as the primary store — relational fit for
+User/Group/Report/Thread/Message, JSONB for `media`/`metadata`, modest per-city scale.
 
 > [!IMPORTANT]
 > Pin **Postgres ≥ 18** for native `uuidv7()`; on older versions generate ids in-app.
-> If a thread ever needs partition/sort-key scale, revisit a wide-column store
-> (rfc-002 Unresolved) — not anticipated at launch.
+> If a thread ever needs partition/sort-key scale, revisit a wide-column store (rfc-002
+> Unresolved) — not anticipated at launch.
 
 ## 7 · Sessions ✅
 
@@ -89,17 +95,20 @@ flowchart LR
 ```
 
 ## 9 · Idempotency 🆕 (generalizes rfc-002 `client_msg_id`)
-Every unsafe POST that may be retried carries a client-generated `Idempotency-Key`. Server
-stores `(actor, key) → result`; replays return the stored result instead of re-executing.
-Messaging's `client_msg_id` is the per-feature instance of this rule.
+
+Every unsafe POST that may be retried carries a client-generated `Idempotency-Key`.
+Server stores `(actor, key) → result`; replays return the stored result instead of
+re-executing. Messaging’s `client_msg_id` is the per-feature instance of this rule.
 
 ## 10 · Pagination 🆕
-List endpoints use keyset/cursor on a time-ordered id
-(`?before={id}&limit={n}`), newest-first. No offset pagination.
+
+List endpoints use keyset/cursor on a time-ordered id (`?before={id}&limit={n}`),
+newest-first. No offset pagination.
 
 ## 11 · Realtime 🆕
-One persistent **WebSocket** per client for fan-out + presence; **REST is authoritative**
-for writes and reconnect backfill.
+
+One persistent **WebSocket** per client for fan-out + presence; **REST is
+authoritative** for writes and reconnect backfill.
 
 ```mermaid
 flowchart LR
@@ -112,6 +121,7 @@ flowchart LR
 *[TODO: self-hosted WS vs. managed pub/sub — spike before commit.]*
 
 ## 12 · Errors 🆕
+
 Uniform envelope on every non-2xx:
 
 ```json
@@ -162,14 +172,16 @@ flowchart LR
 ```
 
 On approval, emit one ADR per cluster (e.g. *API conventions*, *Identifier standard*,
-*Session model*, *Realtime transport*), then trim the "Conventions Assumed" caveats in
+*Session model*, *Realtime transport*), then trim the “Conventions Assumed” caveats in
 rfc-001/rfc-002 to point at them.
 
 # Unresolved Questions
 
-- Realtime: self-hosted WebSocket vs. managed pub/sub (cost + ops).
+- Realtime: self-hosted WebSocket vs.
+  managed pub/sub (cost + ops).
 - Datastore: confirm Postgres version / managed provider.
-- Whether AuthZ warrants a dedicated policy layer or token-claim checks suffice at launch.
+- Whether AuthZ warrants a dedicated policy layer or token-claim checks suffice at
+  launch.
 
 # Future Possibilities
 

@@ -3,7 +3,7 @@ title: Chat Messaging System
 status: Draft
 author: Engineering Team
 created: 2026-06-13T00:00:00Z
-tags: [chat, messaging, design, rfc]
+tags: [chat, design, messaging, rfc]
 id: rfc-002
 project_id: kaneer
 doc_uuid: b129e3e2-412d-473c-b82a-ba1a6b37e193
@@ -23,22 +23,23 @@ transport.
 
 # Motivation
 
-Rescue coordination is real-time over unreliable mobile networks. The model must:
+Rescue coordination is real-time over unreliable mobile networks.
+The model must:
 
 | Need | Why |
 | --- | --- |
 | Stable id at compose time | optimistic render + reconcile on ack |
 | No duplicates on retry | lost ack → resend must not double-post |
 | Strict, gap-detectable order | clients detect missing messages and backfill |
-| Cheap "load older" | keyset pagination, no offset scans |
+| Cheap “load older” | keyset pagination, no offset scans |
 
-Closes: identifier strategy · idempotency/optimistic-send · per-thread ordering · realtime
-delivery + backfill.
+Closes: identifier strategy · idempotency/optimistic-send · per-thread ordering ·
+realtime delivery + backfill.
 
 # Conventions Assumed
 
-Inherits [rfc-001](rfc-001-phone-otp-login.md) conventions (REST/JSON, `snake_case`, JWT)
-and adds one, stated provisionally (ratify in a realtime **ADR**):
+Inherits [rfc-001](./rfc-001-phone-otp-login.md) conventions (REST/JSON, `snake_case`,
+JWT) and adds one, stated provisionally (ratify in a realtime **ADR**):
 
 > [!NOTE]
 > **Realtime transport** — one persistent connection per client for fan-out/presence;
@@ -57,15 +58,16 @@ Two identifiers, distinct owners — the core decision.
 | `client_msg_id` | client (UUID) | **no** | idempotency / dedup on retry | per sender |
 
 - **`id` = UUIDv7** → time-ordered (free cursor pagination), near-sequential PK inserts
-  (good index locality), client-mintable (optimistic render). Server validates on accept
-  (well-formed v7, timestamp within skew window).
-- **`client_msg_id`** → stable token reused on every retry; `UNIQUE (sender_id,
-  client_msg_id)` makes a resend a no-op. Never trusted as identity, never used for order.
+  (good index locality), client-mintable (optimistic render).
+  Server validates on accept (well-formed v7, timestamp within skew window).
+- **`client_msg_id`** → stable token reused on every retry;
+  `UNIQUE (sender_id, client_msg_id)` makes a resend a no-op.
+  Never trusted as identity, never used for order.
 
 > [!TIP]
-> `id` is the server's truth; `client_msg_id` is how the server recognizes a retry it has
-> already stored. Single-id options (Snowflake, trusted-client-id, UUIDv4) are rejected in
-> [Alternatives](#alternatives).
+> `id` is the server’s truth; `client_msg_id` is how the server recognizes a retry it
+> has already stored. Single-id options (Snowflake, trusted-client-id, UUIDv4) are
+> rejected in [Alternatives](#alternatives).
 
 ## Data model
 
@@ -103,11 +105,10 @@ erDiagram
 | `INDEX (conversation_id, id)` | keyset pagination |
 
 > [!NOTE]
-> **`seq`** is a server-assigned per-conversation monotonic int — gives strict ordering +
-> gap detection (holding 41, receiving 43 ⇒ backfill 42), which timestamps can't under
-> clock skew. Display order = `ORDER BY id`; `seq` is the integrity signal.
-> *[TODO: gapless vs. allow-gaps; per-recipient receipts vs. aggregate `status`; media
-> upload → own RFC.]*
+> **`seq`** is a server-assigned per-conversation monotonic int — gives strict ordering
+> \+ gap detection (holding 41, receiving 43 ⇒ backfill 42), which timestamps can’t
+> under clock skew. Display order = `ORDER BY id`; `seq` is the integrity signal.
+> *[TODO: gapless vs. allow-gaps; per-recipient receipts vs. aggregate `status`; media upload → own RFC.]*
 
 ## Send lifecycle
 
@@ -191,17 +192,21 @@ rows exist. *[TODO: seed/test data ⇒ backfill `seq`.]*
 
 # Adoption Strategy
 
-Implicit — every report interaction is a message; no data to migrate. Client work:
-optimistic send (mint id + `client_msg_id`), reconnect backfill by `seq`,
+Implicit — every report interaction is a message; no data to migrate.
+Client work: optimistic send (mint id + `client_msg_id`), reconnect backfill by `seq`,
 sending/sent/delivered/read states.
 
 # Unresolved Questions
 
-- **Datastore** — Postgres (+ version for native UUIDv7) vs. partition/sort-key store
-  (DynamoDB/Scylla: `conversation_id` partition + `seq` sort). Capture in ADR.
-- **Realtime transport** — WebSocket vs. SSE+REST vs. managed pub/sub.
-- **`seq` semantics** — gapless vs. allow-gaps.
-- **Group read receipts** — per-recipient vs. aggregate (fan-out cost).
+- **Datastore** — Postgres (+ version for native UUIDv7) vs.
+  partition/sort-key store (DynamoDB/Scylla: `conversation_id` partition + `seq` sort).
+  Capture in ADR.
+- **Realtime transport** — WebSocket vs.
+  SSE+REST vs. managed pub/sub.
+- **`seq` semantics** — gapless vs.
+  allow-gaps.
+- **Group read receipts** — per-recipient vs.
+  aggregate (fan-out cost).
 - **Edit/delete policy** — window, tombstone visibility, moderator override.
 - **Media upload** — separate RFC.
 
@@ -210,5 +215,5 @@ sending/sent/delivered/read states.
 - 1:1 direct messages (same model, non-thread conversation).
 - Reactions / mentions / threaded replies via `metadata.reply_to_id`.
 - E2E or at-rest encryption for sensitive contact exchange.
-- Message search across a group's threads.
+- Message search across a group’s threads.
 - Offline outbox — queue client-minted messages, flush on reconnect.
